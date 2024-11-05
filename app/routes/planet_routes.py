@@ -1,26 +1,27 @@
 from flask import Blueprint, abort, make_response, request, Response
 from app.db import db 
 from app.models.planet import Planet
+from app.models.moon import Moon
 from constants import MESSAGE, ID, NAME, DESCRIPTION, NUMBER_OF_MOONS, ORDER_BY, MIMETYPE_JSON
-from app.routes.route_utilities import validate_model
+from app.routes.route_utilities import create_model, validate_model
 
-planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
+bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
-@planets_bp.post("")
+@bp.post("")
 def create_planet():
     request_body = request.get_json()
-    try:
-        new_planet = Planet.from_dict(request_body)
-    except KeyError as error:
-        response = {"message": f"Invalid request_body with missing key {error.args[0]}"}
-        abort(make_response(response, 400))
+    return create_model(Planet, request_body)
 
-    db.session.add(new_planet)
-    db.session.commit()
+@bp.post("/<planet_id>/moons")
+def create_moon_with_planet(planet_id):
+    planet = validate_model(Planet, planet_id)
+    
+    request_body = request.get_json()
+    request_body["planet_id"] = planet.id
 
-    return new_planet.to_dict(), 201
+    return create_model(Moon, request_body)
 
-@planets_bp.get("")
+@bp.get("")
 def get_all_planets():
     description_param = request.args.get(DESCRIPTION)
     number_of_moons_param = request.args.get(NUMBER_OF_MOONS)
@@ -46,11 +47,17 @@ def get_all_planets():
 
     return [planet.to_dict() for planet in planets]
 
-@planets_bp.get("/<planet_id>")
+@bp.get("/<planet_id>")
 def get_one_planet(planet_id):
     return validate_model(Planet, planet_id).to_dict()
 
-@planets_bp.put("/<planet_id>")
+@bp.get("/<planet_id>/moons")
+def get_all_moons_with_planet(planet_id):
+    planet = validate_model(Planet, planet_id)
+
+    return [moon.to_dict() for moon in planet.moons]
+
+@bp.put("/<planet_id>")
 def update_planet(planet_id):
     planet = validate_model(Planet, planet_id)
     request_body = request.get_json()
@@ -63,7 +70,7 @@ def update_planet(planet_id):
 
     return Response(status=204, mimetype=MIMETYPE_JSON)
 
-@planets_bp.delete("/<planet_id>")
+@bp.delete("/<planet_id>")
 def delete_planet( planet_id):
     planet = validate_model(Planet, planet_id)
 

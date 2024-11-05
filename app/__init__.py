@@ -1,7 +1,7 @@
 from flask import Flask
 from app.db import db, migrate
-from app.routes.planet_routes import planets_bp
-from app.models import planet
+from app.routes.planet_routes import bp as planets_bp
+from app.models import planet, moon
 import os
 
 def create_app(config=None):
