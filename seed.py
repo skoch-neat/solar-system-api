@@ -1,22 +1,26 @@
-from app import create_app, db
+from app.models.moon import Moon
 from app.models.planet import Planet
-from dotenv import load_dotenv
+from app.db import db
 
-load_dotenv()
+def seed_data():
+    # Original planets with descriptions and moon counts
+    mercury = Planet(name="Mercury", description="The smallest planet in our solar system.", number_of_moons=0)
+    venus = Planet(name="Venus", description="Hottest planet in the solar system.", number_of_moons=0)
+    earth = Planet(name="Earth", description="The only planet known to support life.", number_of_moons=1)
+    mars = Planet(name="Mars", description="Known as the Red Planet.", number_of_moons=2)
+    jupiter = Planet(name="Jupiter", description="Largest planet with a prominent storm.", number_of_moons=79)
 
-my_app = create_app()
-with my_app.app_context():
-    db.session.add(Planet(name="Mercury", description="The intelligent strategist, known for her analytical skills and love of books.", number_of_moons=0)),
-    db.session.add(Planet(name="Venus", description="The charming beauty who believes in love, often the peacemaker among her friends.", number_of_moons=0)),
-    db.session.add(Planet(name="Earth", description="The cheerful leader who fights for love and justice, often clumsy but always brave.", number_of_moons=1)),
-    db.session.add(Planet(name="Mars", description="The passionate warrior with a strong sense of justice and a fiery spirit.", number_of_moons=2)),
-    db.session.add(Planet(name="Jupiter", description="The tough protector with a big heart, skilled in combat and cooking.", number_of_moons=95)),
-    db.session.add(Planet(name="Saturn", description="The mysterious guardian with powerful abilities, often associated with destruction and rebirth.", number_of_moons=83)),
-    db.session.add(Planet(name="Uranus", description="The confident and adventurous rebel, known for her speed and agility.", number_of_moons=27)),
-    db.session.add(Planet(name="Neptune", description="The elegant and artistic fighter, with a deep connection to the ocean and intuition.", number_of_moons=14)),
-    db.session.add(Planet(name="Pluto", description="The wise time guardian, responsible for protecting the gates of time and space.", number_of_moons=5)),
-    db.session.add(Planet(name="Eris", description="The energetic and playful guardian, spreading warmth and positivity wherever she goes.", number_of_moons=1)),
-    db.session.add(Planet(name="Haumea", description="The strategic thinker who uses her intelligence to solve problems and protect her friends.", number_of_moons=2)),
-    db.session.add(Planet(name="Makemake", description="The fierce protector with strong instincts, known for her loyalty and bravery.", number_of_moons=1)),
-    db.session.add(Planet(name="Ceres", description="The nurturing spirit who brings harmony and balance, always caring for her friends.", number_of_moons=0)),
+    # Add planets to the session and commit to generate IDs
+    db.session.add_all([mercury, venus, earth, mars, jupiter])
+    db.session.commit()  # Commit planets first to generate their IDs
+
+    # Moons with references to their planets
+    moon_earth = Moon(size=3474, description="Earth's only natural satellite", distance_from_planet=384400, planet_id=earth.id)
+    phobos = Moon(size=22, description="One of Mars' two moons", distance_from_planet=9377, planet_id=mars.id)
+    deimos = Moon(size=12, description="The smaller moon of Mars", distance_from_planet=23460, planet_id=mars.id)
+    ganymede = Moon(size=5268, description="Largest moon in the solar system", distance_from_planet=1070400, planet_id=jupiter.id)
+    europa = Moon(size=3122, description="One of Jupiter's four Galilean moons", distance_from_planet=671000, planet_id=jupiter.id)
+
+    # Add moons to the session and commit
+    db.session.add_all([moon_earth, phobos, deimos, ganymede, europa])
     db.session.commit()
